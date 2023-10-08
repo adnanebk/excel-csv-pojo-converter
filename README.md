@@ -123,7 +123,7 @@ The ReflectionUtil class serves as the backbone of this Java library, facilitati
 One noteworthy feature of the ReflectionUtil class is the optimization applied to enhance performance. During initialization, all getters, setters, and fields are eagerly loaded and encapsulated in the SheetField Record. This deliberate action minimizes the need for reflection lookups in subsequent operations and boosts overall efficiency.
 
 ## SheetField Record Overview
-```public record SheetField<T>(String typeName, String title, Function<T,Object> getter, BiConsumer<T,Object> setter, int colIndex)```
+```public record SheetField<T>(String typeName, String title, Function<T,Object> getter, BiConsumer<T,Object> setter, int cellIndex)```
 
 The Field record is a fundamental component of the library, designed to encapsulate information about the field of a class.
 
