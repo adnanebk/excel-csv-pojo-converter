@@ -58,7 +58,7 @@ public class ReflectionUtil<T> {
                                            .orElseGet(() -> camelCaseWordsToTitleWords(field.getName()));
                     return buildField(title, cellDefinition.value(), field);
                 })
-                .sorted(Comparator.comparing(SheetField::colIndex))
+                .sorted(Comparator.comparing(SheetField::cellIndex))
                 .toList();
     }
     private List<SheetField<T>> getAllFields() {

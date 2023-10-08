@@ -39,7 +39,7 @@ public class ExcelRowsHandlerUtil<T> {
     public T createObjectFromRow(Row currentRow) {
         var fields = reflectionUtil.getFields();
         Object[] values = fields.stream()
-                .map(field -> getCurrentCell(field.colIndex(), currentRow)
+                .map(field -> getCurrentCell(field.cellIndex(), currentRow)
                         .map(cell -> getCellValue(field.typeName(),cell))
                         .orElse(null)
                 ).toArray();

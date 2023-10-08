@@ -27,7 +27,7 @@ public class CsvRowsHandlerUtil<T> {
         var fields = reflectionUtil.getFields();
         for (int i = 0; i < Math.min(cellsValues.length,fields.size()); i++) {
             var field = fields.get(i);
-            String cellValue = cellsValues[field.colIndex()].replace(quoteChar+"","");
+            String cellValue = cellsValues[field.cellIndex()].replace(quoteChar+"","");
             values[i] = convertToTypedValue(cellValue, field.typeName());
         }
         return createObjectAndSetFieldsValues(values, fields);
