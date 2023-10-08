@@ -120,9 +120,9 @@ the same applicable for converting csv files except we need to define the delimi
 ## The ReflectionUtil Class: Dynamic Class Examination
 
 The ReflectionUtil class serves as the backbone of this Java library, facilitating dynamic class examination and manipulation through the power of Java reflection.
-One noteworthy feature of the ReflectionUtil class is the optimization applied to enhance performance. During initialization, all getters, setters, and fields are eagerly loaded and encapsulated in the custom field class. This deliberate action minimizes the need for reflection lookups in subsequent operations and boosts overall efficiency.
+One noteworthy feature of the ReflectionUtil class is the optimization applied to enhance performance. During initialization, all getters, setters, and fields are eagerly loaded and encapsulated in the SheetField Record. This deliberate action minimizes the need for reflection lookups in subsequent operations and boosts overall efficiency.
 
-## Field Record Overview
+## SheetField Record Overview
 ```public record SheetField<T>(String typeName, String title, Function<T,Object> getter, BiConsumer<T,Object> setter, int colIndex)```
 
 The Field record is a fundamental component of the library, designed to encapsulate information about the field of a class.
