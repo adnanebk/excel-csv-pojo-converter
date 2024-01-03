@@ -46,7 +46,7 @@ public class ExcelRowsHandlerUtil<T> {
         return createObjectAndSetFieldsValues(values,fields);
     }
     public String[] getHeaders() {
-        return reflectionUtil.getFields().stream().map(SheetField::title).toArray(String[]::new);
+        return reflectionUtil.getHeaders().toArray(String[]::new);
     }
 
     private T createObjectAndSetFieldsValues(Object[] values, List<SheetField<T>> fields) {

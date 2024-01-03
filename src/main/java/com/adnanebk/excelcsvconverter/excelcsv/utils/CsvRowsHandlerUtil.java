@@ -52,7 +52,7 @@ public class CsvRowsHandlerUtil<T> {
     }
 
     public String[] getHeaders(){
-        return reflectionUtil.getFields().stream().map(SheetField::title).toArray(String[]::new);
+        return reflectionUtil.getHeaders().toArray(String[]::new);
     }
     private T createObjectAndSetFieldsValues(Object[] values, List<SheetField<T>> fields) {
         T obj = reflectionUtil.createInstance();
