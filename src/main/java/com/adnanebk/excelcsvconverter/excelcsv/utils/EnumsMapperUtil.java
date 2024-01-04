@@ -23,7 +23,8 @@ public class EnumsMapperUtil {
         Map<Object, Object> enumsMapper = new HashMap<>();
         for(var entry : getEnumsMapper(field,instance).entrySet()){
             enumsMapper.put(entry.getKey(),entry.getValue());
-            enumsMapper.put(entry.getValue(),entry.getKey());
+            enumsMapper.put(entry.getValue().toString().toUpperCase(),entry.getKey());
+            enumsMapper.put(entry.getKey().toString().toUpperCase(),entry.getKey());
         }
         var constants = field.getType().asSubclass(Enum.class).getEnumConstants();
         for (var constant : Arrays.stream(constants).filter(constant -> !enumsMapper.containsKey(constant)).toList()) {

@@ -126,7 +126,7 @@ public class ReflectionUtil<T> {
             return (obj,value)-> {
                  try {
                      if(isEnum)
-                         setterMethod.invoke(obj,EnumsMapperUtil.getValue(field,value));
+                         setterMethod.invoke(obj,EnumsMapperUtil.getValue(field,value.toString().toUpperCase()));
                      else if (isBoolean)
                          setterMethod.invoke(obj,BooleanMapperUtil.getBoolean(field,String.valueOf(value)));
                      else setterMethod.invoke(obj,value);
