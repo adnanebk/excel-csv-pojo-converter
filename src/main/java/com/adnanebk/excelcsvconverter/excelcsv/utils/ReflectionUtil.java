@@ -1,7 +1,9 @@
 package com.adnanebk.excelcsvconverter.excelcsv.utils;
 
 
-import com.adnanebk.excelcsvconverter.excelcsv.annotations.*;
+import com.adnanebk.excelcsvconverter.excelcsv.annotations.CellDefinition;
+import com.adnanebk.excelcsvconverter.excelcsv.annotations.IgnoreCell;
+import com.adnanebk.excelcsvconverter.excelcsv.annotations.SheetDefinition;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ReflectionException;
 import com.adnanebk.excelcsvconverter.excelcsv.models.SheetField;
 
@@ -91,7 +93,7 @@ public class ReflectionUtil<T> {
         if(isEnum)
           EnumsMapperUtil.createNewMapping(field,createInstance());
         else if(isBoolean)
-            BooleanMapperUtil.createBooleanValues(field);
+            BooleanMapperUtil.createNewMapping(field);
 
         var getter=getFieldGetter(field,isEnum,isBoolean);
         var setter=getFieldSetter(field,isEnum,isBoolean);

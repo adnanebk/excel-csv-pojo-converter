@@ -14,7 +14,7 @@ public class BooleanMapperUtil {
     private static final Map<Field,BooleanValues> mapper = new HashMap<>();
 
 
-    public static void createBooleanValues(Field field){
+    public static void createNewMapping(Field field){
         String trueValue= Optional.ofNullable(field.getDeclaredAnnotation(CellBoolean.class))
                 .map(CellBoolean::trueValue).orElse("true");
         String falseValue = Optional.ofNullable(field.getDeclaredAnnotation(CellBoolean.class))
