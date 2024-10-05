@@ -84,7 +84,7 @@ we used the enumConverter attribute to define a converter class that contains th
 
 
 We can also use a custom converter to convert a field value to its cell value or the reverse, to do that we can define the
-argument 'converter' to do both conversion sides or the arguments 'toFieldConverter', 'toCellConverter' to do one way of the conversion
+argument 'converter' to do both conversion sides or the arguments 'cellConverter', 'fieldConverter' to do one way of the conversion
 
 ## Converting Excel/csv to POJOs and vice versa
 ```
@@ -114,24 +114,22 @@ public class ExcelFieldsController {
 we have just seen one way to do the convesions by using annotations, we can also use the programatic approch to do the same
 
 ```
-    private  ExcelHelper<Product> excelHelper = ExcelHelper.create(Product.class, createColumnsDefinitions());
+                ExcelHelper.create(Product.class,
+                ColumnDefinition.create(0, "name", "Name"),
+                ColumnDefinition.createWithCellConverter(1, "price", "Price", Long::parseLong),
+                ColumnDefinition.create(2, "promoPrice", "Promotion price"),
+                ColumnDefinition.create(5, "expired", "Expired",new BooleanConverter()),
+                ColumnDefinition.create(3, "minPrice", "Min price"),
+                ColumnDefinition.create(4, "active", "Active"),
+                ColumnDefinition.create(6, "unitsInStock", "Units in stock"),
+                ColumnDefinition.create(7, "createdDate", "Created date"),
+                ColumnDefinition.create(8, "updatedDate", "Updated date"),
+                ColumnDefinition.create(9, "zonedDateTime", "Zoned date time"),
+                ColumnDefinition.create(10, "category", "Category", ()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc"),Category.class),
+                ColumnDefinition.create(11, "localDateTime", "Local date time")
+                );
 
-    private  ColumnDefinition[] createColumnsDefinitions() {
-       return new ColumnDefinition[]{
-               new ColumnDefinition(0, "name", "Name"),
-               new ColumnDefinition(1, "price", "Price",(String e)->Long.parseLong(e)),
-               new ColumnDefinition(2, "promoPrice", "Promotion price"),
-               new ColumnDefinition(5, "expired", "Expired",new BooleanConverter()),
-               new ColumnDefinition(3, "minPrice", "Min price"),
-               new ColumnDefinition(4, "active", "Active"),
-               new ColumnDefinition(6, "unitsInStock", "Units in stock"),
-               new ColumnDefinition(7, "createdDate", "Created date"),
-               new ColumnDefinition(8, "updatedDate", "Updated date"),
-               new ColumnDefinition(9, "zonedDateTime", "Zoned date time"),
-               new ColumnDefinition(10, "category", "Category", ()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc"),Category.class),
-               new ColumnDefinition(11, "localDateTime", "Local date time")
-       };
-    }
+ 
 ```
 
 the same applicable for converting csv files except we need to define the delimiter that will be used

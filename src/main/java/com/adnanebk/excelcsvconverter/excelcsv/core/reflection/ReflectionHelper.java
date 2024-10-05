@@ -3,9 +3,9 @@ package com.adnanebk.excelcsvconverter.excelcsv.core.reflection;
 
 import com.adnanebk.excelcsvconverter.excelcsv.annotations.CellDefinition;
 import com.adnanebk.excelcsvconverter.excelcsv.annotations.SheetDefinition;
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.*;
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations.*;
 import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinition;
+import com.adnanebk.excelcsvconverter.excelcsv.core.converters.Converter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations.*;
 import com.adnanebk.excelcsvconverter.excelcsv.core.utils.DateParserFormatter;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ReflectionException;
 
@@ -35,7 +35,7 @@ public class ReflectionHelper<T> {
         classType = type;
         defaultConstructor = getDefaultConstructor();
         this.dateParserFormatter = this.getDateParserFormatter();
-        Arrays.sort(columnsDefinitions, Comparator.comparing(ColumnDefinition::getColumnIndex));
+        Arrays.sort(columnsDefinitions,Comparator.comparing(ColumnDefinition::getColumnIndex));
         for (ColumnDefinition op : columnsDefinitions) {
             try {
                 Field field = type.getDeclaredField(op.getFieldName());
@@ -44,7 +44,7 @@ public class ReflectionHelper<T> {
                 fields.add(new ReflectedField<>(field, op.getConverter(), op.getColumnIndex()));
                 headers.add(op.getTitle());
             } catch (NoSuchFieldException e) {
-                throw new ReflectionException("the specified field name {" + op.getFieldName() + "} is not found");
+                throw new ReflectionException("the specified field name '" + op.getFieldName() + "' is not found in the class '"+classType.getSimpleName()+"'");
             }
         }
     }
@@ -99,10 +99,10 @@ public class ReflectionHelper<T> {
                 return null;
             if (!cellDefinition.converter().isInterface())
                 return cellDefinition.converter().getDeclaredConstructor().newInstance();
-            if (!cellDefinition.toCellConverter().isInterface())
-                return new ToCellConverterImp<>(cellDefinition.toCellConverter().getDeclaredConstructor().newInstance());
-            if (!cellDefinition.toFieldConverter().isInterface())
-                return new ToFieldConverterImp<>(cellDefinition.toFieldConverter().getDeclaredConstructor().newInstance());
+            if (!cellDefinition.fieldConverter().isInterface())
+                return new FieldConverterImp<>(cellDefinition.fieldConverter().getDeclaredConstructor().newInstance());
+            if (!cellDefinition.cellConverter().isInterface())
+                return new CellConverterImp<>(cellDefinition.cellConverter().getDeclaredConstructor().newInstance());
             if (!cellDefinition.enumConverter().isInterface())
                 return new EnumConverterImp<>(field.getType(),
                         cellDefinition.enumConverter().getDeclaredConstructor().newInstance());

@@ -1,14 +1,14 @@
 package com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations;
 
 import com.adnanebk.excelcsvconverter.excelcsv.core.converters.Converter;
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.ToCellConverter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.converters.FieldConverter;
 
-public class ToCellConverterImp<T>  implements Converter<T> {
+public class FieldConverterImp<T>  implements Converter<T> {
 
-    private final ToCellConverter<T> toCellConverter;
+    private final FieldConverter<T> fieldConverter;
 
-    public ToCellConverterImp(ToCellConverter<T> toCellConverter) {
-        this.toCellConverter = toCellConverter;
+    public FieldConverterImp(FieldConverter<T> fieldConverter) {
+        this.fieldConverter = fieldConverter;
     }
 
     @Override
@@ -18,6 +18,6 @@ public class ToCellConverterImp<T>  implements Converter<T> {
 
     @Override
     public String convertToCellValue(T fieldValue) {
-        return toCellConverter.convertToCellValue(fieldValue);
+        return fieldConverter.convertToCellValue(fieldValue);
     }
 }

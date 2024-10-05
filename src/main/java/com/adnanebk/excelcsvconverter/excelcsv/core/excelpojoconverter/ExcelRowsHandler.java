@@ -3,9 +3,13 @@ package com.adnanebk.excelcsvconverter.excelcsv.core.excelpojoconverter;
 import com.adnanebk.excelcsvconverter.excelcsv.core.reflection.ReflectedField;
 import com.adnanebk.excelcsvconverter.excelcsv.core.reflection.ReflectionHelper;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.SheetValidationException;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
 
-import java.time.*;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 
 public class ExcelRowsHandler<T> {
 
@@ -44,6 +48,7 @@ public class ExcelRowsHandler<T> {
     }
 
     private Object getCellValue(ReflectedField<?> reflectedField,Cell cell) {
+        var t = cell.getCellType();
         if (cell.getCellType().equals(CellType.STRING))
             return cell.getStringCellValue();
         return switch (reflectedField.getTypeName()) {
@@ -52,7 +57,7 @@ public class ExcelRowsHandler<T> {
             case "localdatetime" -> cell.getLocalDateTimeCellValue();
             case "zoneddatetime" -> cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault());
             case "date" -> cell.getDateCellValue();
-            default -> throw new SheetValidationException("Unsupported field typeName " + reflectedField.getTypeName());
+            default -> throw new IllegalStateException();
         };
     }
 

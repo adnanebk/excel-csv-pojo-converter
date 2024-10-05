@@ -1,6 +1,6 @@
 package com.adnanebk.excelcsvconverter.excelcsv.core.converters;
 
-public interface ToFieldConverter<T>  {
+public interface CellConverter<T>  {
 
     T convertToFieldValue(String cellValue);
 

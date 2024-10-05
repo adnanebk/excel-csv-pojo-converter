@@ -1,8 +1,9 @@
 package com.adnanebk.excelcsvconverter.excelcsv;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.ToCellConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinition;
 import com.adnanebk.excelcsvconverter.excelcsv.core.excelpojoconverter.ExcelHelper;
+import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ReflectionException;
+import com.adnanebk.excelcsvconverter.excelcsv.exceptions.SheetValidationException;
 import com.adnanebk.excelcsvconverter.excelcsv.models.BooleanConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.models.Category;
 import com.adnanebk.excelcsvconverter.excelcsv.models.Product;
@@ -10,9 +11,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -29,35 +28,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ExcelHelperTest {
-    private final static ExcelHelper<Product> excelHelper = ExcelHelper.create(Product.class, createColumnsDefinitions());
-    private final static ExcelHelper<Product> excelHelper2 = ExcelHelper.create(Product.class);
+    private  static ExcelHelper<Product> excelHelper;
+    private  static ExcelHelper<Product> excelHelper2;
 
-    private static ColumnDefinition[] createColumnsDefinitions() {
-       return new ColumnDefinition[]{
-               new ColumnDefinition(0, "name", "Name"),
-               new ColumnDefinition(1, "price", "Price",(String e)->Long.parseLong(e)),
-               new ColumnDefinition(2, "promoPrice", "Promotion price"),
-               new ColumnDefinition(5, "expired", "Expired",new BooleanConverter()),
-               new ColumnDefinition(3, "minPrice", "Min price"),
-               new ColumnDefinition(4, "active", "Active"),
-               new ColumnDefinition(6, "unitsInStock", "Units in stock"),
-               new ColumnDefinition(7, "createdDate", "Created date"),
-               new ColumnDefinition(8, "updatedDate", "Updated date"),
-               new ColumnDefinition(9, "zonedDateTime", "Zoned date time"),
-               new ColumnDefinition(10, "category", "Category", ()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc"),Category.class),
-               new ColumnDefinition(11, "localDateTime", "Local date time")
-       };
+    @BeforeAll
+    static void setUp() {
+        excelHelper2 = ExcelHelper.create(Product.class);
+        excelHelper = ExcelHelper.create(Product.class,
+                ColumnDefinition.create(0, "name", "Name"),
+                ColumnDefinition.createWithCellConverter(1, "price", "Price", Long::parseLong),
+                ColumnDefinition.create(2, "promoPrice", "Promotion price"),
+                ColumnDefinition.create(5, "expired", "Expired",new BooleanConverter()),
+                ColumnDefinition.create(3, "minPrice", "Min price"),
+                ColumnDefinition.create(4, "active", "Active"),
+                ColumnDefinition.create(6, "unitsInStock", "Units in stock"),
+                ColumnDefinition.create(7, "createdDate", "Created date"),
+                ColumnDefinition.create(8, "updatedDate", "Updated date"),
+                ColumnDefinition.create(9, "zonedDateTime", "Zoned date time"),
+                ColumnDefinition.create(10, "category", "Category", ()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc"),Category.class),
+                ColumnDefinition.create(11, "localDateTime", "Local date time")
+        );
     }
-
-    private static ToCellConverter<String> getStringToCellConverter() {
-        return (v) -> v;
-    }
-
 
     private static List<Product> getProducts() {
         List<Product> productList = new ArrayList<>();
@@ -69,7 +64,7 @@ class ExcelHelperTest {
     @ParameterizedTest
     @MethodSource("getAllHelpers")
     @Order(1)
-    void toExcel_withValidProductData_shouldReturnCorrectExcel(ExcelHelper<Product> excelHelper) {
+    void toExcel_addColumnValidProductData_shouldReturnCorrectExcel(ExcelHelper<Product> excelHelper) {
         List<Product> productList = getProducts();
 
         // Generate Excel file
@@ -119,7 +114,7 @@ class ExcelHelperTest {
     @ParameterizedTest
     @MethodSource("getAllHelpers")
     @Order(2)
-    void toList_withValidExcelFile_shouldReturnCorrectProductList(ExcelHelper<Product> excelHelper) throws IOException {
+    void toList_addColumnValidExcelFile_shouldReturnCorrectProductList(ExcelHelper<Product> excelHelper) throws IOException {
 
         // Read the file as an InputStream
         String destinationPath = "src/test/resources/products3.xlsx";
@@ -149,6 +144,20 @@ class ExcelHelperTest {
             assertNotNull(result.get(1).getZonedDateTime()); // Assuming it's not null in the Excel file
             assertSame(Category.B, result.get(1).getCategory()); // Assuming it's not null in the Excel file
         }
+    }
+    @Test
+    void throw_field_not_found_exception(){
+       Assertions.assertThrows(ReflectionException.class,()->ExcelHelper.create(Product.class, ColumnDefinition.create(0,"namee","Name"))
+       );
+    }
+    @Test
+    void throw_invalid_value_exception() throws IOException {
+        String destinationPath = "src/test/resources/products3.xlsx";
+        var helper = ExcelHelper.create(Product.class , ColumnDefinition.create(1,"name","Name"));
+        try (InputStream inputStream = Files.newInputStream(new File(destinationPath).toPath())) {
+            Assertions.assertThrows(SheetValidationException.class,()-> helper.toStream(inputStream).toList());
+        }
+
     }
 public static Stream<ExcelHelper<Product>> getAllHelpers(){
         return Stream.of(excelHelper,excelHelper2);
