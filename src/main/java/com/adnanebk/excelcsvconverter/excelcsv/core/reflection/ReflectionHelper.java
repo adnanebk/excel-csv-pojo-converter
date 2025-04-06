@@ -2,49 +2,40 @@ package com.adnanebk.excelcsvconverter.excelcsv.core.reflection;
 
 
 import com.adnanebk.excelcsvconverter.excelcsv.annotations.CellDefinition;
-import com.adnanebk.excelcsvconverter.excelcsv.annotations.SheetDefinition;
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.*;
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations.*;
 import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinition;
-import com.adnanebk.excelcsvconverter.excelcsv.core.utils.DateParserFormatter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.ConverterFactory;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ReflectionException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 public class ReflectionHelper<T> {
     private final List<ReflectedField<?>> fields = new ArrayList<>();
-    private final List<String> headers = new ArrayList<>();
     private final Class<T> classType;
     private final Constructor<T> defaultConstructor;
-    private final DateParserFormatter dateParserFormatter;
 
     public ReflectionHelper(Class<T> type) {
         classType = type;
         defaultConstructor = getDefaultConstructor();
-        this.dateParserFormatter = this.getDateParserFormatter();
         this.setFieldsAndTitles();
     }
 
-    public ReflectionHelper(Class<T> type, ColumnDefinition[] columnsDefinitions) {
+    public ReflectionHelper(Class<T> type, ColumnDefinition<?>[] columnsDefinitions) {
         classType = type;
         defaultConstructor = getDefaultConstructor();
-        this.dateParserFormatter = this.getDateParserFormatter();
-        Arrays.sort(columnsDefinitions, Comparator.comparing(ColumnDefinition::getColumnIndex));
-        for (ColumnDefinition op : columnsDefinitions) {
+        Arrays.sort(columnsDefinitions,Comparator.comparing(ColumnDefinition::getColumnIndex));
+        for (var cd : columnsDefinitions) {
             try {
-                Field field = type.getDeclaredField(op.getFieldName());
-                if (op.getConverter() == null)
-                    op.setConverter(this.getDefaultConverter(field));
-                fields.add(new ReflectedField<>(field, op.getConverter(), op.getColumnIndex()));
-                headers.add(op.getTitle());
+                Field field = type.getDeclaredField(cd.getFieldName());
+                if (cd.getConverter() == null)
+                    cd.setConverter(ConverterFactory.createConverter(field),field.getType());
+                if(!cd.getClassType().equals(field.getType()))
+                    throw new ReflectionException(String.format("The converter of the field %s is not compatible with its type %s",cd.getFieldName(),field.getType().getSimpleName()));
+                fields.add(new ReflectedField<>(field, cd.getConverter(), cd.getColumnIndex(),cd.getTitle()));
             } catch (NoSuchFieldException e) {
-                throw new ReflectionException("the specified field name {" + op.getFieldName() + "} is not found");
+                throw new ReflectionException("the specified field name '" + cd.getFieldName() + "' is not found in the class '"+classType.getSimpleName()+"'");
             }
         }
     }
@@ -53,9 +44,6 @@ public class ReflectionHelper<T> {
         return fields;
     }
 
-    public List<String> getHeaders() {
-        return headers;
-    }
 
     public T createInstance() {
         try {
@@ -63,12 +51,6 @@ public class ReflectionHelper<T> {
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new ReflectionException(e.getMessage());
         }
-    }
-
-    public DateParserFormatter getDateParserFormatter() {
-        return Optional.ofNullable(classType.getAnnotation(SheetDefinition.class))
-                .map(info -> new DateParserFormatter(info.datePattern(), info.dateTimePattern()))
-                .orElseGet(DateParserFormatter::new);
     }
 
     private Constructor<T> getDefaultConstructor() {
@@ -84,67 +66,14 @@ public class ReflectionHelper<T> {
                 .filter(field -> field.isAnnotationPresent(CellDefinition.class))
                 .sorted(Comparator.comparing(field -> field.getDeclaredAnnotation(CellDefinition.class).value()))
                 .forEach(field -> {
-                    var cellDefinition = field.getDeclaredAnnotation(CellDefinition.class);
-                    var reflectedField = new ReflectedField<>(field, this.createConverter(field, cellDefinition), cellDefinition.value());
-                    String title = Optional.of(cellDefinition.title()).filter(s -> !s.isEmpty())
-                            .orElseGet(() -> camelCaseWordsToTitleWords(field.getName()));
-                    fields.add(reflectedField);
-                    headers.add(title);
+                   var cellDefinition = field.getDeclaredAnnotation(CellDefinition.class);
+                   String title = Optional.of(cellDefinition.title()).filter(s -> !s.isEmpty())
+                                  .orElseGet(() -> camelCaseWordsToTitleWords(field.getName()));
+                   fields.add(new ReflectedField<>(field, ConverterFactory.createConverter(field, cellDefinition), cellDefinition.value(),title));
                 });
     }
 
-    private Converter<?> createConverter(Field field, CellDefinition cellDefinition) {
-        try {
-            if (cellDefinition == null)
-                return null;
-            if (!cellDefinition.converter().isInterface())
-                return cellDefinition.converter().getDeclaredConstructor().newInstance();
-            if (!cellDefinition.toCellConverter().isInterface())
-                return new ToCellConverterImp<>(cellDefinition.toCellConverter().getDeclaredConstructor().newInstance());
-            if (!cellDefinition.toFieldConverter().isInterface())
-                return new ToFieldConverterImp<>(cellDefinition.toFieldConverter().getDeclaredConstructor().newInstance());
-            if (!cellDefinition.enumConverter().isInterface())
-                return new EnumConverterImp<>(field.getType(),
-                        cellDefinition.enumConverter().getDeclaredConstructor().newInstance());
-            return getDefaultConverter(field);
-        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException |
-                 IllegalAccessException e) {
-            throw new ReflectionException(e.getMessage());
-        }
-    }
 
-    private Converter<?> getDefaultConverter(Field field) {
-        if (field.getType().equals(Boolean.class) || field.getType().equals(boolean.class))
-            return new BooleanConverterImp();
-        if (field.getType().isEnum())
-            return new EnumConverterImp<>(field.getType(), new HashMap<>());
-
-        if (field.getType().equals(Date.class)) {
-            return new DateConverter(dateParserFormatter);
-        }
-        if (field.getType().equals(LocalDate.class)) {
-            return new LocalDateConverter(dateParserFormatter);
-        }
-        if (field.getType().equals(LocalDateTime.class)) {
-            return new LocalDateTimeConverter(dateParserFormatter);
-        }
-        if (field.getType().equals(ZonedDateTime.class)) {
-            return new ZonedDateConverter(dateParserFormatter);
-        }
-        if (field.getType().equals(Integer.class) || field.getType().equals(int.class)) {
-            return new IntegerConverter();
-        }
-        if (field.getType().equals(Long.class) || field.getType().equals(long.class)) {
-            return new LongConverter();
-        }
-        if (field.getType().equals(Double.class) || field.getType().equals(double.class)) {
-            return new DoubleConverter();
-        }
-        if (field.getType().equals(Short.class) || field.getType().equals(short.class)) {
-            return new ShortConverter();
-        }
-        return null;
-    }
 
     private String camelCaseWordsToTitleWords(String word) {
         String firstChar = Character.toUpperCase(word.charAt(0)) + "";

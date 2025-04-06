@@ -13,13 +13,13 @@ class ReflectedFieldTest {
 
     @Test
     void setValue() throws NoSuchFieldException {
-        var reflectedField = new ReflectedField<>(Product.class.getDeclaredField("name"), null, 0);
+        var reflectedField = new ReflectedField<>(Product.class.getDeclaredField("name"), null, 0,"Name");
         Assertions.assertDoesNotThrow(() -> reflectedField.setValue("a name", new Product()));
     }
 
     @Test
     void getValueString() throws NoSuchFieldException {
-        var reflectedField = new ReflectedField<>(Product.class.getDeclaredField("name"), new StringConverter(), 0);
+        var reflectedField = new ReflectedField<>(Product.class.getDeclaredField("name"), new StringConverter(), 0,"Name");
         Product product = new Product();
         product.setName("a name");
 
@@ -32,7 +32,7 @@ class ReflectedFieldTest {
 
     @Test
     void getValueDate() throws NoSuchFieldException {
-        var reflectedField = new ReflectedField<>(Product.class.getDeclaredField("updatedDate"), null, 0);
+        var reflectedField = new ReflectedField<>(Product.class.getDeclaredField("updatedDate"), null, 0,"Updated date");
         Product product = new Product();
         product.setUpdatedDate(LocalDate.now());
 

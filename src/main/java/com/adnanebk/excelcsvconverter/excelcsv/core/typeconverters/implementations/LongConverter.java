@@ -1,6 +1,6 @@
-package com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations;
+package com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.implementations;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.Converter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.Converter;
 
 
 public class LongConverter implements Converter<Long> {

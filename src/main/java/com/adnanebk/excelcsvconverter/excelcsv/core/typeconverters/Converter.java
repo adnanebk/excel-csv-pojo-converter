@@ -1,4 +1,4 @@
-package com.adnanebk.excelcsvconverter.excelcsv.core.converters;
+package com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters;
 
 public interface Converter<T>  {
 

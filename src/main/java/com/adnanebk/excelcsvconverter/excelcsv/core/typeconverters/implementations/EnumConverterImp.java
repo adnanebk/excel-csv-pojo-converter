@@ -1,7 +1,7 @@
-package com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations;
+package com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.implementations;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.Converter;
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.EnumConverter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.Converter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.EnumConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ConverterException;
 
 import java.util.EnumMap;
@@ -16,7 +16,7 @@ public class EnumConverterImp<T extends Enum<T>> implements Converter<T> {
         if(!type.isEnum())
             throw new ConverterException("Can't convert " + type + " to Enum");
         Class<T> enumType = (Class<T>) type;
-        enumToCellValue = new EnumMap<>(enumType);
+       enumToCellValue = new EnumMap<>(enumType);
        cellValueToEnum = new HashMap<>();
         for(var entry : map.entrySet()){
             enumToCellValue.put(enumType.cast(entry.getKey()),entry.getValue());

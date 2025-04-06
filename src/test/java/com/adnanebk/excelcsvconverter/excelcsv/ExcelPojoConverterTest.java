@@ -1,8 +1,11 @@
 package com.adnanebk.excelcsvconverter.excelcsv;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.ToCellConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinition;
-import com.adnanebk.excelcsvconverter.excelcsv.core.excelpojoconverter.ExcelHelper;
+import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConverter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConverterFactory;
+import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.excel.ExcelPojoConverter;
+import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ReflectionException;
+import com.adnanebk.excelcsvconverter.excelcsv.exceptions.SheetValidationException;
 import com.adnanebk.excelcsvconverter.excelcsv.models.BooleanConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.models.Category;
 import com.adnanebk.excelcsvconverter.excelcsv.models.Product;
@@ -10,9 +13,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -29,35 +30,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ExcelHelperTest {
-    private final static ExcelHelper<Product> excelHelper = ExcelHelper.create(Product.class, createColumnsDefinitions());
-    private final static ExcelHelper<Product> excelHelper2 = ExcelHelper.create(Product.class);
+class ExcelPojoConverterTest {
+    private  static FilePojoConverter<Product> excelPojoConverter;
+    private  static FilePojoConverter<Product> excelPojoConverter2;
 
-    private static ColumnDefinition[] createColumnsDefinitions() {
-       return new ColumnDefinition[]{
-               new ColumnDefinition(0, "name", "Name"),
-               new ColumnDefinition(1, "price", "Price",(String e)->Long.parseLong(e)),
-               new ColumnDefinition(2, "promoPrice", "Promotion price"),
-               new ColumnDefinition(5, "expired", "Expired",new BooleanConverter()),
-               new ColumnDefinition(3, "minPrice", "Min price"),
-               new ColumnDefinition(4, "active", "Active"),
-               new ColumnDefinition(6, "unitsInStock", "Units in stock"),
-               new ColumnDefinition(7, "createdDate", "Created date"),
-               new ColumnDefinition(8, "updatedDate", "Updated date"),
-               new ColumnDefinition(9, "zonedDateTime", "Zoned date time"),
-               new ColumnDefinition(10, "category", "Category", ()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc"),Category.class),
-               new ColumnDefinition(11, "localDateTime", "Local date time")
-       };
+    @BeforeAll
+    static void setUp() {
+        excelPojoConverter2 = FilePojoConverterFactory.createExcelConverter(Product.class);
+        excelPojoConverter = FilePojoConverterFactory.createExcelConverter(Product.class,
+                ColumnDefinition.with(0, "name", "Name"),
+                ColumnDefinition.withCellConverter(1, "price", "Price", long.class, Long::parseLong),
+                ColumnDefinition.with(2, "promoPrice", "Promotion price"),
+                ColumnDefinition.withConverter(5, "expired", "Expired",Boolean.class,new BooleanConverter()),
+                ColumnDefinition.with(3, "minPrice", "Min price"),
+                ColumnDefinition.with(4, "active", "Active"),
+                ColumnDefinition.with(6, "unitsInStock", "Units in stock"),
+                ColumnDefinition.with(7, "createdDate", "Created date"),
+                ColumnDefinition.with(8, "updatedDate", "Updated date"),
+                ColumnDefinition.with(9, "zonedDateTime", "Zoned date time"),
+                ColumnDefinition.withEnumConverter(10, "category", "Category",Category.class,()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc")),
+                ColumnDefinition.with(11, "localDateTime", "Local date time")
+        );
     }
-
-    private static ToCellConverter<String> getStringToCellConverter() {
-        return (v) -> v;
-    }
-
 
     private static List<Product> getProducts() {
         List<Product> productList = new ArrayList<>();
@@ -69,12 +66,12 @@ class ExcelHelperTest {
     @ParameterizedTest
     @MethodSource("getAllHelpers")
     @Order(1)
-    void toExcel_withValidProductData_shouldReturnCorrectExcel(ExcelHelper<Product> excelHelper) {
+    void toExcel_addColumnValidProductData_shouldReturnCorrectExcel(FilePojoConverter<Product> excelPojoConverter) {
         List<Product> productList = getProducts();
 
         // Generate Excel file
         String destinationPath = "src/test/resources/products3.xlsx";
-        try (ByteArrayInputStream excelBytes = excelHelper.toExcel(productList);
+        try (ByteArrayInputStream excelBytes = excelPojoConverter.toByteArrayInputStream(productList);
              Workbook workbook = new XSSFWorkbook(excelBytes);
              FileOutputStream outputStream = new FileOutputStream(destinationPath)
         ) {
@@ -108,7 +105,7 @@ class ExcelHelperTest {
                 assertEquals((double) product.getUnitsInStock(), row.getCell(6).getNumericCellValue());
                 assertEquals(new SimpleDateFormat().format(product.getCreatedDate()), row.getCell(7).getStringCellValue());
                 assertEquals(DateTimeFormatter.ISO_LOCAL_DATE.format(product.getUpdatedDate()), row.getCell(8).getStringCellValue());
-                assertEquals(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(product.getZonedDateTime()), row.getCell(9).getStringCellValue());
+                assertEquals(DateTimeFormatter.ISO_ZONED_DATE_TIME.format(product.getZonedDateTime()), row.getCell(9).getStringCellValue());
                 assertEquals("bb", row.getCell(10).getStringCellValue());
                 assertEquals(DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(product.getLocalDateTime()), row.getCell(11).getStringCellValue());
         } catch (IOException e) {
@@ -119,14 +116,14 @@ class ExcelHelperTest {
     @ParameterizedTest
     @MethodSource("getAllHelpers")
     @Order(2)
-    void toList_withValidExcelFile_shouldReturnCorrectProductList(ExcelHelper<Product> excelHelper) throws IOException {
+    void toList_addColumnValidExcelFile_shouldReturnCorrectProductList(ExcelPojoConverter<Product> excelPojoConverter) throws IOException {
 
         // Read the file as an InputStream
         String destinationPath = "src/test/resources/products3.xlsx";
         // Read the file as an InputStream
         try (InputStream inputStream = Files.newInputStream(new File(destinationPath).toPath())) {
 
-            List<Product> result = excelHelper.toStream(inputStream).toList();
+            List<Product> result = excelPojoConverter.toStream(inputStream).toList();
             // Assuming you know the expected size of the list
             assertEquals(2, result.size());
 
@@ -150,7 +147,40 @@ class ExcelHelperTest {
             assertSame(Category.B, result.get(1).getCategory()); // Assuming it's not null in the Excel file
         }
     }
-public static Stream<ExcelHelper<Product>> getAllHelpers(){
-        return Stream.of(excelHelper,excelHelper2);
+
+    @Test
+    void test_field_converter() throws IOException {
+        String destinationPath = "src/test/resources/products3.xlsx";
+        var helper = FilePojoConverterFactory.createExcelConverter(Product.class , ColumnDefinition.withFieldConverter(1,"name","Name",String.class, name->name+"..."));
+
+        try (ByteArrayInputStream excelBytes = helper.toByteArrayInputStream(getProducts());
+             Workbook workbook = new XSSFWorkbook(excelBytes);
+             FileOutputStream outputStream = new FileOutputStream(destinationPath)
+        ) {
+            workbook.write(outputStream);
+            Sheet sheet = workbook.getSheetAt(0);
+            assertEquals("Product A...", sheet.getRow(1).getCell(0).getStringCellValue());
+        }
+
+    }
+    @Test
+    void throw_field_not_found_exception(){
+       Assertions.assertThrows(ReflectionException.class,()-> FilePojoConverterFactory.createExcelConverter(Product.class, ColumnDefinition.with(0,"namee","Name")));
+    }
+    @Test
+    void throw_invalid_value_exception() throws IOException {
+        String destinationPath = "src/test/resources/products3.xlsx";
+        var helper = FilePojoConverterFactory.createExcelConverter(Product.class , ColumnDefinition.with(1,"name","Name"));
+        try (InputStream inputStream = Files.newInputStream(new File(destinationPath).toPath())) {
+            Assertions.assertThrows(SheetValidationException.class,()-> helper.toStream(inputStream).toList());
+        }
+
+    }
+    @Test
+    void throw_invalid_type_exception() {
+        Assertions.assertThrows(ReflectionException.class,()-> FilePojoConverterFactory.createExcelConverter(Product.class, ColumnDefinition.withCellConverter(1, "price", "Price", int.class, Integer::parseInt)));
+    }
+public static Stream<FilePojoConverter<Product>> getAllHelpers(){
+        return Stream.of(excelPojoConverter, excelPojoConverter2);
 }
 }

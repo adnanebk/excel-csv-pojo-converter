@@ -1,6 +1,6 @@
 package com.adnanebk.excelcsvconverter.excelcsv.models;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.EnumConverter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.EnumConverter;
 
 import java.util.Map;
 

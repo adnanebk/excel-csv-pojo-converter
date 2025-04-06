@@ -1,9 +1,18 @@
 package com.adnanebk.excelcsvconverter.excelcsv;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.csvpojoconverter.CsvHelper;
+import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinition;
+import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConverter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConverterFactory;
+import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.csv.CsvPojoConverter;
+import com.adnanebk.excelcsvconverter.excelcsv.models.BooleanConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.models.Category;
 import com.adnanebk.excelcsvconverter.excelcsv.models.Product;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -13,16 +22,34 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class CsvHelperTest {
-    private CsvHelper<Product> csvHelper;
+class CsvPojoConverterTest {
+    private static FilePojoConverter<Product> csvPojoConverter;
+    private static FilePojoConverter<Product> csvPojoConverter2;
 
-    @BeforeEach
-    void setUp() {
-        csvHelper = CsvHelper.create(Product.class, ";");
+
+     @BeforeAll
+     static void setUp() {
+        csvPojoConverter = FilePojoConverterFactory.createCsvConverter(Product.class, ";");
+        csvPojoConverter2 = FilePojoConverterFactory.createCsvConverter(Product.class, ";",
+                ColumnDefinition.with(0, "name", "Name"),
+                ColumnDefinition.withCellConverter(1, "price", "Price",  long.class, Long::parseLong),
+                ColumnDefinition.with(2, "promoPrice", "Promotion price"),
+                ColumnDefinition.withConverter(5, "expired", "Expired",Boolean.class,new BooleanConverter()),
+                ColumnDefinition.with(3, "minPrice", "Min price"),
+                ColumnDefinition.with(4, "active", "Active"),
+                ColumnDefinition.with(6, "unitsInStock", "Units in stock"),
+                ColumnDefinition.with(7, "createdDate", "Created date"),
+                ColumnDefinition.with(8, "updatedDate", "Updated date"),
+                ColumnDefinition.with(9, "zonedDateTime", "Zoned date time"),
+                ColumnDefinition.withEnumConverter(10, "category", "Category",Category.class,()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc")),
+                ColumnDefinition.with(11, "localDateTime", "Local date time")
+        );
     }
 
     private static List<Product> getProducts() {
@@ -31,14 +58,15 @@ class CsvHelperTest {
         productList.add(new Product("Product B", 200, 180.75, 150.0, true, true, 30, new Date(), LocalDate.now(), ZonedDateTime.now(), Category.B,LocalDateTime.now()));
         return productList;
     }
-    @Test
+    @ParameterizedTest
+    @MethodSource("getAllHelpers")
     @Order(0)
-    void toCsv_withValidProductData_shouldReturnCorrectExcel() {
+    void toCsv_withValidProductData_shouldReturnCorrectExcel(FilePojoConverter<Product> csvPojoConverter) {
         List<Product> productList = getProducts();
         String destinationPath = "src/test/resources/products.csv";
         File file =new File(destinationPath);
-        try (ByteArrayInputStream byteArrayInputStream = csvHelper.toCsv(productList);
-                OutputStream outputStream = new FileOutputStream(file)) {
+        try (ByteArrayInputStream byteArrayInputStream = csvPojoConverter.toByteArrayInputStream(productList);
+             OutputStream outputStream = new FileOutputStream(file)) {
             byteArrayInputStream.transferTo(outputStream);
             BufferedReader reader = new BufferedReader(new FileReader(destinationPath));
             List<String> lines = reader.lines().toList();
@@ -52,14 +80,15 @@ class CsvHelperTest {
     }
 
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("getAllHelpers")
     @Order(1)
-    void toList_withValidCsvFile_shouldReturnCorrectProductList() throws IOException {
+    void toList_withValidCsvFile_shouldReturnCorrectProductList(CsvPojoConverter<Product> csvPojoConverter) throws IOException {
         String destinationPath = "src/test/resources/products.csv";
         // Read the file as an InputStream
         try (InputStream inputStream = Files.newInputStream(new File(destinationPath).toPath())) {
             // Create a MockMultipartFile
-            List<Product> result = csvHelper.toStream(inputStream).toList();
+            List<Product> result = csvPojoConverter.toStream(inputStream).toList();
 
             assertEquals("Product A", result.get(0).getName());
             assertEquals(100, result.get(0).getPrice());
@@ -79,5 +108,8 @@ class CsvHelperTest {
             assertSame(Category.B, result.get(1).getCategory()); // Assuming it's not null in the Excel file
         }
 
+    }
+    public static Stream<FilePojoConverter<Product>> getAllHelpers(){
+        return Stream.of(csvPojoConverter, csvPojoConverter2);
     }
 }

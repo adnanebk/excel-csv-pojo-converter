@@ -1,6 +1,6 @@
 package com.adnanebk.excelcsvconverter.excelcsv.models;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.Converter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.Converter;
 
 public class BooleanConverter implements Converter<Boolean> {
 

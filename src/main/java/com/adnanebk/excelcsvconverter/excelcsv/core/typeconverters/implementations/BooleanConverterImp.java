@@ -1,11 +1,11 @@
-package com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations;
+package com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.implementations;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.Converter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.Converter;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ConverterException;
 
 public class BooleanConverterImp implements Converter<Boolean> {
-    private final static  String TRUE_VALUE = "true";
-    private final static String  FALSE_VALUE = "false";
+    private static final  String TRUE_VALUE = "true";
+    private static final String  FALSE_VALUE = "false";
 
 
     @Override

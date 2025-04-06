@@ -1,13 +1,13 @@
-package com.adnanebk.excelcsvconverter.excelcsv.core.converters.implementations;
+package com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.implementations;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.converters.Converter;
+import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.Converter;
 
 
 public class DoubleConverter implements Converter<Double> {
 
     @Override
     public Double convertToFieldValue(String cellValue) {
-        return Double.parseDouble(cellValue);
+        return Double.parseDouble(cellValue.replace(",","."));
     }
 
     @Override

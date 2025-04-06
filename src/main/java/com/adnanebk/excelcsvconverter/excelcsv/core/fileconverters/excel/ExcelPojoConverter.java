@@ -1,7 +1,6 @@
-package com.adnanebk.excelcsvconverter.excelcsv.core.excelpojoconverter;
+package com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.excel;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinition;
-import com.adnanebk.excelcsvconverter.excelcsv.core.reflection.ReflectionHelper;
+import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.SheetValidationException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFFont;
@@ -11,36 +10,21 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 
-public class ExcelHelper<T> {
+public class ExcelPojoConverter<T> implements FilePojoConverter<T> {
 
     private final ExcelRowsHandler<T> rowsHandler;
-    private final String[] headers;
 
-    private ExcelHelper(ExcelRowsHandler<T> rowsHandler, String[] headers) {
+    public ExcelPojoConverter(ExcelRowsHandler<T> rowsHandler) {
         this.rowsHandler = rowsHandler;
-        this.headers = headers;
-    }
-
-    public static <T> ExcelHelper<T> create(Class<T> type) {
-        var reflectionHelper = new ReflectionHelper<>(type);
-        var rowsHandler = new ExcelRowsHandler<>(reflectionHelper);
-        return new ExcelHelper<>(rowsHandler, reflectionHelper.getHeaders().toArray(String[]::new));
-    }
-
-    public static <T> ExcelHelper<T> create(Class<T> type, ColumnDefinition... columnsDefinitions) {
-        var headers = Arrays.stream(columnsDefinitions).map(ColumnDefinition::getTitle);
-        var reflectionHelper = new ReflectionHelper<>(type, columnsDefinitions);
-        var rowsHandler = new ExcelRowsHandler<>(reflectionHelper);
-        return new ExcelHelper<>(rowsHandler, headers.toArray(String[]::new));
     }
 
 
+    @Override
     public Stream<T> toStream(InputStream inputStream) {
         try (Workbook workbook = new XSSFWorkbook(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -53,7 +37,8 @@ public class ExcelHelper<T> {
         }
     }
 
-    public ByteArrayInputStream toExcel(List<T> list) {
+    @Override
+    public ByteArrayInputStream toByteArrayInputStream(List<T> list) {
         try (Workbook workbook = new XSSFWorkbook();
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet();
@@ -79,6 +64,7 @@ public class ExcelHelper<T> {
         font.setBold(true);
         headerStyle.setFont(font);
         Row headerRow = sheet.createRow(0);
+        String[] headers = rowsHandler.getHeaders();
         for (int colIdx = 0; colIdx < headers.length; colIdx++) {
             Cell cell = headerRow.createCell(colIdx);
             cell.setCellValue(headers[colIdx]);

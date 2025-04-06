@@ -28,7 +28,6 @@ Before we dive into the library, let’s take a close look at a sample Java clas
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@SheetDefinition(datePattern = "dd/MM/yyyy")
 public class Product {
 
     @CellDefinition(0,converter=NameConverter.class)
@@ -78,31 +77,29 @@ This Product class is annotated with various annotations that play a crucial rol
 
 we can also define the title of the cell, by default it will convert the camel case name of the field to a name with spaces (ex: firstName=>First name)
 
-The @SheetDefinition annotation provides additional information like date formatting patterns that will be used during conversion of date field types.
-
 we used the enumConverter attribute to define a converter class that contains the conversions (by using a map) between the enum constants and the cell values in the excel/csv (by default the enum constants will be used as cell values).
 
 
 We can also use a custom converter to convert a field value to its cell value or the reverse, to do that we can define the
-argument 'converter' to do both conversion sides or the arguments 'toFieldConverter', 'toCellConverter' to do one way of the conversion
+argument 'converter' to do both conversion sides or the arguments 'cellConverter', 'fieldConverter' to do one way of the conversion
 
 ## Converting Excel/csv to POJOs and vice versa
 ```
 @RestController
 @RequestMapping("excel/products")
 public class ExcelFieldsController {
-    private final ExcelHelper<Product> excelHelper = ExcelHelper.create(Product.class);
+    private final FilePojoConverter<Product> excelPojoConverter = FilePojoConverterFactory.createExcelConverter(Product.class);
 
     @GetMapping
     public List<Product> excelToProducts(@RequestBody MultipartFile file){
-        return excelHelper.toStream(file.getInputStream()).toList();
+        return excelPojoConverter.toStream(file.getInputStream()).toList();
     }
 
        @GetMapping("/download")
     public ResponseEntity<InputStreamResource>
     downloadExcelFromProducts() {
         String filename = "products-" + LocalDate.now() + ".xlsx";
-        InputStreamResource file = new InputStreamResource(excelHelper.toExcel(getProducts()));
+        InputStreamResource file = new InputStreamResource(excelPojoConverter.toByteArrayInputStream(getProducts()));
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
@@ -114,29 +111,27 @@ public class ExcelFieldsController {
 we have just seen one way to do the convesions by using annotations, we can also use the programatic approch to do the same
 
 ```
-    private  ExcelHelper<Product> excelHelper = ExcelHelper.create(Product.class, createColumnsDefinitions());
+                ExcelHelper.create(Product.class,
+                    ColumnDefinition.with(0, "name", "Name"),
+                    ColumnDefinition.WithCellConverter(1, "price", "Price", long.class, Long::parseLong),
+                    ColumnDefinition.with(2, "promoPrice", "Promotion price"),
+                    ColumnDefinition.withConverter(5, "expired", "Expired",Boolean.class,new BooleanConverter()),
+                    ColumnDefinition.with(3, "minPrice", "Min price"),
+                    ColumnDefinition.with(4, "active", "Active"),
+                    ColumnDefinition.with(6, "unitsInStock", "Units in stock"),
+                    ColumnDefinition.with(7, "createdDate", "Created date"),
+                    ColumnDefinition.with(8, "updatedDate", "Updated date"),
+                    ColumnDefinition.with(9, "zonedDateTime", "Zoned date time"),
+                    ColumnDefinition.withEnumConverter(10, "category", "Category",Category.class,()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc")),
+                    ColumnDefinition.with(11, "localDateTime", "Local date time")
+                );
 
-    private  ColumnDefinition[] createColumnsDefinitions() {
-       return new ColumnDefinition[]{
-               new ColumnDefinition(0, "name", "Name"),
-               new ColumnDefinition(1, "price", "Price",(String e)->Long.parseLong(e)),
-               new ColumnDefinition(2, "promoPrice", "Promotion price"),
-               new ColumnDefinition(5, "expired", "Expired",new BooleanConverter()),
-               new ColumnDefinition(3, "minPrice", "Min price"),
-               new ColumnDefinition(4, "active", "Active"),
-               new ColumnDefinition(6, "unitsInStock", "Units in stock"),
-               new ColumnDefinition(7, "createdDate", "Created date"),
-               new ColumnDefinition(8, "updatedDate", "Updated date"),
-               new ColumnDefinition(9, "zonedDateTime", "Zoned date time"),
-               new ColumnDefinition(10, "category", "Category", ()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc"),Category.class),
-               new ColumnDefinition(11, "localDateTime", "Local date time")
-       };
-    }
+ 
 ```
 
 the same applicable for converting csv files except we need to define the delimiter that will be used
 
-    private final CsvHelper<ProductV2> csvHelper = CsvHelper.create(ProductV2.class,";");
+    private final FilePojoConverter<ProductV2> csvPojoConverter = FilePojoConverterFactory.createCsvConverter(ProductV2.class,";");
 ## Optimization considaration
 
 One noteworthy feature of this library is the optimization applied to enhance performance. During initialization, constructor and all getters and setters are initialized only once and used subsequently. This  minimizes the need for reflection lookups in subsequent operations and boosts overall efficiency.
