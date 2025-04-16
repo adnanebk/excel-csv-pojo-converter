@@ -62,7 +62,7 @@ public abstract class ConverterFactory {
         if (field.getType().equals(Double.class) || field.getType().equals(double.class)) {
             return new DoubleConverter();
         }
-        return null;
+        return new DefaultConverter<>(field.getType(), field.getName());
     }
 
     private static boolean isClassImplementation(Class<?> type) {
