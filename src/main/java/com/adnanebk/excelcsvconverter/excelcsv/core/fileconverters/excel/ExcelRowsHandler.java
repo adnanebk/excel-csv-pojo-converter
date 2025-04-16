@@ -32,7 +32,7 @@ public class ExcelRowsHandler<T> {
         var fields = reflectionHelper.getFields();
         for (int i = 0; i < fields.size(); i++) {
             var field = fields.get(i);
-            var fieldValue = field.getValueAsString(obj);
+            String fieldValue = field.getValueAsString(obj);
             if (fieldValue == null)
                 return;
             var cell = row.createCell(i);
@@ -59,15 +59,15 @@ public class ExcelRowsHandler<T> {
         return obj;
     }
 
-    private Object getCellValue(ReflectedField<?> reflectedField,Cell cell) {
+    private String getCellValue(ReflectedField<?> reflectedField,Cell cell) {
         if (cell.getCellType().equals(CellType.STRING))
             return cell.getStringCellValue();
         return switch (reflectedField.getTypeName()) {
             case "number" -> dataFormat.formatCellValue(cell);
-            case "localdate" -> cell.getLocalDateTimeCellValue().toLocalDate();
-            case "localdatetime" -> cell.getLocalDateTimeCellValue();
-            case "zoneddatetime" -> cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault());
-            case "date" -> cell.getDateCellValue();
+            case "localdate" -> cell.getLocalDateTimeCellValue().toLocalDate().toString();
+            case "localdatetime" -> cell.getLocalDateTimeCellValue().toString();
+            case "zoneddatetime" -> cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toString();
+            case "date" -> cell.getDateCellValue().toString();
             default -> throw new IllegalStateException();
         };
     }

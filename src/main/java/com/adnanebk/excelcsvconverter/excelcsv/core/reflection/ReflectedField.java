@@ -21,8 +21,8 @@ public class ReflectedField<T> {
             this.title = title;
             this.converter = converter;
             this.name = field.getName();
-            this.getter = field.getDeclaringClass().getDeclaredMethod((field.getType().equals(boolean.class) ? "is" : "get") + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1));
-            this.setter = field.getDeclaringClass().getDeclaredMethod("set" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1), field.getType());
+            this.getter = field.getDeclaringClass().getDeclaredMethod(getGetterMethodName(field));
+            this.setter = field.getDeclaringClass().getDeclaredMethod(getSetterMethodName(field),field.getType());
             this.cellIndex = cellIndex;
             typeName = getTypeName(field);
         } catch (NoSuchMethodException e) {
@@ -39,9 +39,9 @@ public class ReflectedField<T> {
         }
     }
 
-    public void setValue(Object cellValue, Object obj) {
+    public void setValue(String cellValue, Object obj) {
         try {
-             setter.invoke(obj, converter.convertToFieldValue(cellValue.toString()));
+             setter.invoke(obj, converter.convertToFieldValue(cellValue));
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new ReflectionException(e.getMessage());
         }
@@ -68,6 +68,13 @@ public class ReflectedField<T> {
         else if (isNumericType(field.getType()))
             return  "number";
         return field.getType().getSimpleName().toLowerCase();
+    }
+    private String getSetterMethodName(Field field) {
+        return  "set" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
+    }
+
+    private  String getGetterMethodName(Field field) {
+        return (field.getType().equals(boolean.class) ? "is" : "get") + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
     }
     private boolean isNumericType(Class<?> clazz) {
         return clazz == byte.class || clazz == short.class || clazz == int.class ||
