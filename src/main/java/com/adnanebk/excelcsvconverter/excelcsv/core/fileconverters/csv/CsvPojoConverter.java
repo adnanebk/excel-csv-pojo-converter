@@ -5,8 +5,12 @@ import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConve
 import com.adnanebk.excelcsvconverter.excelcsv.core.reflection.ReflectedField;
 import com.adnanebk.excelcsvconverter.excelcsv.core.reflection.ReflectionHelper;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.SheetValidationException;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 import com.opencsv.ICSVWriter;
+import com.opencsv.exceptions.CsvException;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -34,8 +38,20 @@ public class CsvPojoConverter<T> implements FilePojoConverter<T> {
 
     @Override
     public Stream<T> toStream(InputStream inputStream) {
-        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-        return br.lines().skip(1).map(this::convertToObject);
+        try (CSVReader reader = new CSVReaderBuilder(
+                new BufferedReader(new InputStreamReader(inputStream)))
+                .withCSVParser(new CSVParserBuilder()
+                        .withSeparator(delimiter.charAt(0))
+                        .withEscapeChar(ESCAPE_CHARACTER)
+                        .withQuoteChar(QUOTE_CHARACTER)
+                        .build())
+                .build()) {
+            return reader.readAll().stream()
+                    .skip(1) // Skip header
+                    .map(this::convertToObject);
+        } catch (IOException | CsvException  e) {
+            throw new SheetValidationException(e.getMessage());
+        }
     }
 
     @Override
@@ -52,13 +68,12 @@ public class CsvPojoConverter<T> implements FilePojoConverter<T> {
         }
     }
 
-    private T convertToObject(String line) {
-        String[] cellsValues = line.split(delimiter);
+    private T convertToObject(String[] columns) {
         var fields = reflectionHelper.getFields();
         T obj = reflectionHelper.createInstance();
-        for (int i = 0; i < Math.min(cellsValues.length, fields.size()); i++) {
+        for (int i = 0; i < Math.min(columns.length, fields.size()); i++) {
             var field = fields.get(i);
-            String cellValue = cellsValues[i].replace(QUOTE_CHARACTER + "", "");
+            String cellValue = columns[i];
             try {
                 if(!cellValue.isEmpty())
                     field.setValue(cellValue, obj);
@@ -73,7 +88,7 @@ public class CsvPojoConverter<T> implements FilePojoConverter<T> {
 
     private String[] convertToLine(T obj) {
         return reflectionHelper.getFields().stream()
-                .map(field -> field.getValue(obj).toString())
+                .map(field -> field.getValueAsString(obj))
                 .toArray(String[]::new);
     }
 

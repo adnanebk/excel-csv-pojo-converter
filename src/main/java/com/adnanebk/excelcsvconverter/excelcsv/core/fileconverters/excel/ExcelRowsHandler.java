@@ -32,14 +32,14 @@ public class ExcelRowsHandler<T> {
         var fields = reflectionHelper.getFields();
         for (int i = 0; i < fields.size(); i++) {
             var field = fields.get(i);
-            var fieldValue = field.getValue(obj);
+            var fieldValue = field.getValueAsString(obj);
             if (fieldValue == null)
                 return;
             var cell = row.createCell(i);
             if (field.getTypeName().equals("number"))
-                cell.setCellValue(Double.parseDouble(fieldValue.toString()));
+                cell.setCellValue(Double.parseDouble(fieldValue));
             else
-                cell.setCellValue(fieldValue.toString());
+                cell.setCellValue(fieldValue);
         }
     }
 

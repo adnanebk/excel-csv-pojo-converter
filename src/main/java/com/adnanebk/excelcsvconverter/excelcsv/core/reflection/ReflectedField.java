@@ -30,12 +30,10 @@ public class ReflectedField<T> {
         }
     }
 
-    public Object getValue(Object obj) {
+    public String getValueAsString(Object obj) {
         try {
             Object fieldValue = getter.invoke(obj);
-            if (converter != null)
-                return converter.convertToCellValue((T) fieldValue);
-            return fieldValue;
+            return converter.convertToCellValue((T) fieldValue);
         } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
             throw new ReflectionException(e.getMessage());
         }
@@ -43,9 +41,7 @@ public class ReflectedField<T> {
 
     public void setValue(Object cellValue, Object obj) {
         try {
-            if (converter != null && cellValue instanceof String)
-                setter.invoke(obj, converter.convertToFieldValue(cellValue.toString()));
-            else setter.invoke(obj, cellValue);
+             setter.invoke(obj, converter.convertToFieldValue(cellValue.toString()));
         } catch (InvocationTargetException | IllegalAccessException e) {
             throw new ReflectionException(e.getMessage());
         }
