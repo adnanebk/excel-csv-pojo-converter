@@ -3,30 +3,35 @@ package com.adnanebk.excelcsvconverter.excelcsv.core.reflection;
 import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.Converter;
 import com.adnanebk.excelcsvconverter.excelcsv.exceptions.ReflectionException;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class ReflectedField<T> {
-    private final Method getter;
-    private final Method setter;
+    private final MethodHandle getter;
+    private final MethodHandle  setter;
     private final int cellIndex;
     private final Converter<T> converter;
     private final String typeName;
     private final String name;
     private final String title;
 
+
     public ReflectedField(Field field, Converter<T> converter, int cellIndex,String title) {
+
         try {
+            var declaringClass = field.getDeclaringClass();
+            MethodHandles.Lookup lookup = MethodHandles.publicLookup();
             this.title = title;
             this.converter = converter;
             this.name = field.getName();
-            this.getter = field.getDeclaringClass().getDeclaredMethod(getGetterMethodName(field));
-            this.setter = field.getDeclaringClass().getDeclaredMethod(getSetterMethodName(field),field.getType());
+            this.getter = lookup.findVirtual(declaringClass,getGetterMethodName(field), MethodType.methodType(field.getType()));
+            this.setter = lookup.findVirtual(declaringClass,getSetterMethodName(field),MethodType.methodType(void.class,field.getType()));
             this.cellIndex = cellIndex;
             typeName = getTypeName(field);
-        } catch (NoSuchMethodException e) {
-            throw new ReflectionException("not found all getters and setters");
+        } catch (IllegalAccessException | NoSuchMethodException e) {
+            throw new ReflectionException(e.getMessage());
         }
     }
 
@@ -34,7 +39,7 @@ public class ReflectedField<T> {
         try {
             Object fieldValue = getter.invoke(obj);
             return converter.convertToCellValue((T) fieldValue);
-        } catch (IllegalAccessException | InvocationTargetException | ClassCastException e) {
+        } catch (Throwable e) {
             throw new ReflectionException(e.getMessage());
         }
     }
@@ -42,7 +47,7 @@ public class ReflectedField<T> {
     public void setValue(String cellValue, Object obj) {
         try {
              setter.invoke(obj, converter.convertToFieldValue(cellValue));
-        } catch (InvocationTargetException | IllegalAccessException e) {
+        } catch (Throwable e) {
             throw new ReflectionException(e.getMessage());
         }
     }
