@@ -2,15 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.adnanebk</groupId>
+	<groupId>io.github.adnanebk</groupId>
 	<artifactId>excel-csv-converter</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>1.0</version>
 	<name>excel-csv-converter</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Excel to/from csv/excel converter</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>17</java.version>
+		<java.version>21</java.version>
 		<jacoco.version>0.8.10</jacoco.version>
 		<sonar.organization>adnanebk</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -19,9 +19,43 @@
 		<sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
 		<sonar.language>java</sonar.language>
 		<sonar.inclusions>**/core/**/*.java</sonar.inclusions>
-		<maven.compiler.source>17</maven.compiler.source>
-		<maven.compiler.target>17</maven.compiler.target>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 	</properties>
+
+
+	<organization>
+		<name>Owner</name>
+	</organization>
+	<url>https://github.com/adnanebk/excel-csv-pojo-converter</url>
+	<developers>
+		<developer>
+			<name>adnane benkouider</name>
+		</developer>
+	</developers>
+	<scm>
+		<url>https://github.com/mstahv/flow-sliders</url>
+		<connection>scm:git:git://github.com/adnanebk/excel-csv-pojo-converter.git</connection>
+		<!--
+            developerConnection is used by e.g. maven-release-plugin to push changes to the repo.
+            Some "newbies" might be better off with https, I always go with ssh 😎
+        -->
+		<developerConnection>scm:git:ssh://git@github.com:/adnanebk/excel-csv-pojo-converter.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/adnanebk/excel-csv-pojo-converter/issues</url>
+	</issueManagement>
+	<licenses>
+		<license>
+			<name>Apache 2</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
 	<dependencies>
 
 		<dependency>
@@ -61,7 +95,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.28</version>
+			<version>1.18.34</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -90,11 +124,84 @@
 				</property>
 			</activation>
 		</profile>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.central</groupId>
+						<artifactId>central-publishing-maven-plugin</artifactId>
+						<version>0.7.0</version>
+						<extensions>true</extensions>
+						<configuration>
+							<publishingServerId>central</publishingServerId>
+							<autoPublish>true</autoPublish>
+						</configuration>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>3.3.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>3.11.2</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>3.2.7</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 	</profiles>
 
 	<build>
 		<plugins>
+			<plugin>
+				<!-- Fixing version & activating "release" profile for those who use release plugin -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>3.1.1</version>
+				<configuration>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
 
+					<!-- Forward compatibility: "release-profile" will be removed from super POM.
+                         It's better to define javadocs, sources, signing, etc. in an independent "release" profile. -->
+					<useReleaseProfile>false</useReleaseProfile>
+					<releaseProfiles>release</releaseProfiles>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
