@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.adnanebk</groupId>
 	<artifactId>filespojoconverter</artifactId>
-	<version>1.1-SNAPSHOT</version>
+	<version>1.1</version>
 	<name>excel-csv-converter</name>
 	<description>Excel to/from csv/excel converter</description>
 	<properties>
@@ -40,7 +40,7 @@
             Some "newbies" might be better off with https, I always go with ssh 😎
         -->
 		<developerConnection>scm:git:ssh://git@github.com:/adnanebk/excel-csv-pojo-converter.git</developerConnection>
-		<tag>filespojoconverter-1.1</tag>
+		<tag>1.1</tag>
 	</scm>
 
 	<issueManagement>
