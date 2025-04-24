@@ -33,7 +33,7 @@
 		</developer>
 	</developers>
 	<scm>
-		<url>https://github.com/mstahv/flow-sliders</url>
+		<url>https://github.com/adnanebk/excel-csv-pojo-converter</url>
 		<connection>scm:git:git://github.com/adnanebk/excel-csv-pojo-converter.git</connection>
 		<!--
             developerConnection is used by e.g. maven-release-plugin to push changes to the repo.
