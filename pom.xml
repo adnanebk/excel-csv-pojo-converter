@@ -40,7 +40,7 @@
             Some "newbies" might be better off with https, I always go with ssh 😎
         -->
 		<developerConnection>scm:git:ssh://git@github.com:/adnanebk/excel-csv-pojo-converter.git</developerConnection>
-		<tag>excel-csv-converter_1.1</tag>
+		<tag>excel-csv-converter</tag>
 	</scm>
 
 	<issueManagement>
