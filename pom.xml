@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.github.adnanebk</groupId>
-	<artifactId>excel-csv-converter</artifactId>
+	<artifactId>filespojoconverter</artifactId>
 	<version>1.1-SNAPSHOT</version>
 	<name>excel-csv-converter</name>
 	<description>Excel to/from csv/excel converter</description>
@@ -40,7 +40,7 @@
             Some "newbies" might be better off with https, I always go with ssh 😎
         -->
 		<developerConnection>scm:git:ssh://git@github.com:/adnanebk/excel-csv-pojo-converter.git</developerConnection>
-		<tag>1.1</tag>
+		<tag>filespojoconverter-1.1</tag>
 	</scm>
 
 	<issueManagement>
