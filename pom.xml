@@ -100,18 +100,6 @@
 
 	</dependencies>
 
-	<distributionManagement>
-		<repository>
-			<id>github</id>
-			<name>adnanebk</name>
-			<url>https://maven.pkg.github.com/adnanebk/excel-csv-pojo-converter</url>
-		</repository>
-		<snapshotRepository>
-			<id>github</id>
-			<name>adnanebk</name>
-			<url>https://maven.pkg.github.com/adnanebk/excel-csv-pojo-converter</url>
-		</snapshotRepository>
-	</distributionManagement>
 
 	<profiles>
 		<profile>
