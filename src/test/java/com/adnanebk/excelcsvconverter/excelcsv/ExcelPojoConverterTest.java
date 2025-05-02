@@ -1,6 +1,6 @@
 package com.adnanebk.excelcsvconverter.excelcsv;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinition;
+import com.adnanebk.excelcsvconverter.excelcsv.core.ColumnDefinitionBuilder;
 import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.FilePojoConverterFactory;
 import com.adnanebk.excelcsvconverter.excelcsv.core.fileconverters.excel.ExcelPojoConverter;
@@ -41,18 +41,19 @@ class ExcelPojoConverterTest {
     static void setUp() {
         excelPojoConverter2 = FilePojoConverterFactory.createExcelConverter(Product.class);
         excelPojoConverter = FilePojoConverterFactory.createExcelConverter(Product.class,
-                ColumnDefinition.with(0, "name", "Name"),
-                ColumnDefinition.withCellConverter(1, "price", "Price", long.class, Long::parseLong),
-                ColumnDefinition.with(2, "promoPrice", "Promotion price"),
-                ColumnDefinition.withConverter(5, "expired", "Expired",Boolean.class,new BooleanConverter()),
-                ColumnDefinition.with(3, "minPrice", "Min price"),
-                ColumnDefinition.with(4, "active", "Active"),
-                ColumnDefinition.with(6, "unitsInStock", "Units in stock"),
-                ColumnDefinition.with(7, "createdDate", "Created date"),
-                ColumnDefinition.with(8, "updatedDate", "Updated date"),
-                ColumnDefinition.with(9, "zonedDateTime", "Zoned date time"),
-                ColumnDefinition.withEnumConverter(10, "category", "Category",Category.class,()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc")),
-                ColumnDefinition.with(11, "localDateTime", "Local date time")
+                new ColumnDefinitionBuilder(0, "name", "Name").build(),
+                new ColumnDefinitionBuilder(1, "price", "Price").withCellConverter(long.class, Long::parseLong).build(),
+                new ColumnDefinitionBuilder(2, "promoPrice", "Promotion price").build(),
+                new ColumnDefinitionBuilder(5, "expired", "Expired").withConverter(Boolean.class,new BooleanConverter()).build(),
+                new ColumnDefinitionBuilder(3, "minPrice", "Min price").build(),
+                new ColumnDefinitionBuilder(4, "active", "Active").build(),
+                new ColumnDefinitionBuilder(6, "unitsInStock", "Units in stock").build(),
+                new ColumnDefinitionBuilder(7, "createdDate", "Created date").build(),
+                new ColumnDefinitionBuilder(8, "updatedDate", "Updated date").build(),
+                new ColumnDefinitionBuilder(9, "zonedDateTime", "Zoned date time").build(),
+                new ColumnDefinitionBuilder(10, "category", "Category")
+                        .withEnumConverter(Category.class,()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc")).build(),
+                new ColumnDefinitionBuilder(11, "localDateTime", "Local date time").build()
         );
     }
 
@@ -151,7 +152,8 @@ class ExcelPojoConverterTest {
     @Test
     void test_field_converter() throws IOException {
         String destinationPath = "src/test/resources/products3.xlsx";
-        var helper = FilePojoConverterFactory.createExcelConverter(Product.class , ColumnDefinition.withFieldConverter(1,"name","Name",String.class, name->name+"..."));
+        var helper = FilePojoConverterFactory.createExcelConverter(Product.class , new ColumnDefinitionBuilder(1,"name","Name")
+                .withFieldConverter(String.class, name->name+"...").build());
 
         try (ByteArrayInputStream excelBytes = helper.toByteArrayInputStream(getProducts());
              Workbook workbook = new XSSFWorkbook(excelBytes);
@@ -165,12 +167,12 @@ class ExcelPojoConverterTest {
     }
     @Test
     void throw_field_not_found_exception(){
-       Assertions.assertThrows(ReflectionException.class,()-> FilePojoConverterFactory.createExcelConverter(Product.class, ColumnDefinition.with(0,"namee","Name")));
+       Assertions.assertThrows(ReflectionException.class,()-> FilePojoConverterFactory.createExcelConverter(Product.class, new ColumnDefinitionBuilder(0,"namee","Name").build()));
     }
     @Test
     void throw_invalid_value_exception() throws IOException {
         String destinationPath = "src/test/resources/products3.xlsx";
-        var helper = FilePojoConverterFactory.createExcelConverter(Product.class , ColumnDefinition.with(1,"name","Name"));
+        var helper = FilePojoConverterFactory.createExcelConverter(Product.class , new ColumnDefinitionBuilder(1,"name","Name").build());
         try (InputStream inputStream = Files.newInputStream(new File(destinationPath).toPath())) {
             Assertions.assertThrows(SheetValidationException.class,()-> helper.toStream(inputStream).toList());
         }
@@ -178,7 +180,8 @@ class ExcelPojoConverterTest {
     }
     @Test
     void throw_invalid_type_exception() {
-        Assertions.assertThrows(ReflectionException.class,()-> FilePojoConverterFactory.createExcelConverter(Product.class, ColumnDefinition.withCellConverter(1, "price", "Price", int.class, Integer::parseInt)));
+        Assertions.assertThrows(ReflectionException.class,()-> FilePojoConverterFactory.createExcelConverter(Product.class, new ColumnDefinitionBuilder(1, "price", "Price")
+                .withCellConverter(int.class, Integer::parseInt).build()));
     }
 public static Stream<FilePojoConverter<Product>> getAllHelpers(){
         return Stream.of(excelPojoConverter, excelPojoConverter2);

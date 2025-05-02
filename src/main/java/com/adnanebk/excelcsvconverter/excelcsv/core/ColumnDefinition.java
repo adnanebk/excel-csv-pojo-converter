@@ -1,48 +1,21 @@
 package com.adnanebk.excelcsvconverter.excelcsv.core;
 
-import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.CellConverter;
 import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.Converter;
-import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.EnumConverter;
-import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.FieldConverter;
-import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.implementations.CellConverterImp;
-import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.implementations.EnumConverterImp;
-import com.adnanebk.excelcsvconverter.excelcsv.core.typeconverters.implementations.FieldConverterImp;
-
 
 public class ColumnDefinition<T> {
 
     private Class<T> classType;
     private final int columnIndex;
-    private String fieldName;
+    private final String fieldName;
     private final String title;
     private Converter<T> converter;
 
-    private ColumnDefinition(int columnIndex, String fieldName, String title, Converter<T> converter,Class<T> classType) {
+     ColumnDefinition(int columnIndex, String fieldName, String title, Converter<T> converter,Class<T> classType) {
         this.columnIndex = columnIndex;
         this.fieldName = fieldName;
         this.title = title;
         this.converter = converter;
         this.classType = classType;
-    }
-
-    public static <T> ColumnDefinition<T> with(int columnIndex, String fieldName, String title) {
-        return new ColumnDefinition<>(columnIndex,fieldName,title,null,null);
-
-    }
-    public static <T> ColumnDefinition<T> withConverter(int columnIndex, String fieldName, String title, Class<T> fieldType, Converter<T> converter) {
-        return new ColumnDefinition<>(columnIndex,fieldName,title,converter,fieldType);
-    }
-
-    public static <T> ColumnDefinition<T> withCellConverter(int columnIndex, String fieldName, String title, Class<T> fieldType, CellConverter<T> cellConverter) {
-        return new ColumnDefinition<>(columnIndex,fieldName,title,new CellConverterImp<>(cellConverter),fieldType);
-    }
-
-    public static <T> ColumnDefinition<T> withFieldConverter(int columnIndex, String fieldName, String title, Class<T> fieldType, FieldConverter<T> fieldConverter) {
-        return new ColumnDefinition<>(columnIndex,fieldName,title,new FieldConverterImp<>(fieldConverter),fieldType);
-    }
-
-    public static <T extends Enum<T>> ColumnDefinition<T> withEnumConverter(int columnIndex, String fieldName, String title, Class<T> fieldType, EnumConverter<T> converter) {
-        return new ColumnDefinition<>(columnIndex,fieldName,title,new EnumConverterImp<>(fieldType,converter),fieldType);
     }
 
     public int getColumnIndex() {

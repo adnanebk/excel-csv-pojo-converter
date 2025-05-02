@@ -112,18 +112,19 @@ we have just seen one way to do the convesions by using annotations, we can also
 
 ```
                 ExcelHelper.create(Product.class,
-                    ColumnDefinition.with(0, "name", "Name"),
-                    ColumnDefinition.WithCellConverter(1, "price", "Price", long.class, Long::parseLong),
-                    ColumnDefinition.with(2, "promoPrice", "Promotion price"),
-                    ColumnDefinition.withConverter(5, "expired", "Expired",Boolean.class,new BooleanConverter()),
-                    ColumnDefinition.with(3, "minPrice", "Min price"),
-                    ColumnDefinition.with(4, "active", "Active"),
-                    ColumnDefinition.with(6, "unitsInStock", "Units in stock"),
-                    ColumnDefinition.with(7, "createdDate", "Created date"),
-                    ColumnDefinition.with(8, "updatedDate", "Updated date"),
-                    ColumnDefinition.with(9, "zonedDateTime", "Zoned date time"),
-                    ColumnDefinition.withEnumConverter(10, "category", "Category",Category.class,()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc")),
-                    ColumnDefinition.with(11, "localDateTime", "Local date time")
+                new ColumnDefinitionBuilder(0, "name", "Name").build(),
+                new ColumnDefinitionBuilder(1, "price", "Price").withCellConverter(long.class, Long::parseLong).build(),
+                new ColumnDefinitionBuilder(2, "promoPrice", "Promotion price").build(),
+                new ColumnDefinitionBuilder(5, "expired", "Expired").withConverter(Boolean.class,new BooleanConverter()).build(),
+                new ColumnDefinitionBuilder(3, "minPrice", "Min price").build(),
+                new ColumnDefinitionBuilder(4, "active", "Active").build(),
+                new ColumnDefinitionBuilder(6, "unitsInStock", "Units in stock").build(),
+                new ColumnDefinitionBuilder(7, "createdDate", "Created date").build(),
+                new ColumnDefinitionBuilder(8, "updatedDate", "Updated date").build(),
+                new ColumnDefinitionBuilder(9, "zonedDateTime", "Zoned date time").build(),
+                new ColumnDefinitionBuilder(10, "category", "Category")
+                        .withEnumConverter(Category.class,()->Map.of(Category.A,"aa", Category.B,"bb", Category.C,"cc")).build(),
+                new ColumnDefinitionBuilder(11, "localDateTime", "Local date time").build()
                 );
 
  
