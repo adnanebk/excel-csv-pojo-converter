@@ -49,7 +49,7 @@ public class ExcelRowsHandler<T> {
             try {
                 var cell = row.getCell(field.getCellIndex(), Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
                 if(!cell.getCellType().equals(CellType.BLANK))
-                  field.setValue(getCellValue(field, cell), obj);
+                 setFieldValue(field, cell, obj);
             } catch (IllegalStateException | NumberFormatException e) {
                 throw new SheetValidationException(String.format("Cannot convert the cell value in row %s, column %s to the field %s", row.getRowNum() + 1, ALPHABET.charAt(field.getCellIndex()),field.getName()));
             } catch (DateTimeException e) {
@@ -59,17 +59,19 @@ public class ExcelRowsHandler<T> {
         return obj;
     }
 
-    private String getCellValue(ReflectedField<?> reflectedField,Cell cell) {
+    private void setFieldValue(ReflectedField<?> field, Cell cell, T obj) {
         if (cell.getCellType().equals(CellType.STRING))
-            return cell.getStringCellValue();
-        return switch (reflectedField.getTypeName()) {
-            case "number" -> dataFormat.formatCellValue(cell);
-            case "localdate" -> cell.getLocalDateTimeCellValue().toLocalDate().toString();
-            case "localdatetime" -> cell.getLocalDateTimeCellValue().toString();
-            case "zoneddatetime" -> cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()).toString();
-            case "date" -> cell.getDateCellValue().toString();
-            default -> throw new IllegalStateException();
-        };
+             field.setValue(cell.getStringCellValue(), obj);
+        else {
+            switch (field.getTypeName()) {
+                case "number" -> field.setValue(dataFormat.formatCellValue(cell), obj);
+                case "localdate" -> field.setValue(cell.getLocalDateTimeCellValue().toLocalDate(),obj);
+                case "localdatetime" -> field.setValue(cell.getLocalDateTimeCellValue(),obj);
+                case "zoneddatetime" -> field.setValue(cell.getLocalDateTimeCellValue().atZone(ZoneId.systemDefault()),obj);
+                case "date" -> field.setValue(cell.getDateCellValue(),obj);
+                default -> throw new IllegalStateException();
+            }
+        }
     }
 
 }

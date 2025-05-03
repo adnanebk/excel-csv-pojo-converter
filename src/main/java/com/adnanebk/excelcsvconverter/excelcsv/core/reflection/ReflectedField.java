@@ -45,8 +45,11 @@ public class ReflectedField<T> {
     }
 
     public void setValue(String cellValue, Object obj) {
+      setValue(converter.convertToFieldValue(cellValue),obj);
+    }
+    public void setValue(Object value, Object obj) {
         try {
-             setter.invoke(obj, converter.convertToFieldValue(cellValue));
+            setter.invoke(obj, value);
         } catch (Throwable e) {
             throw new ReflectionException(e.getMessage());
         }
